@@ -1,7 +1,7 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.UsuarioEntity;
-import com.example.demo.Services.UsuarioService;
+import com.example.demo.entities.UsuarioEntity;
+import com.example.demo.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

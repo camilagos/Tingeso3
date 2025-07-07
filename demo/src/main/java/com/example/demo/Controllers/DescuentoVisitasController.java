@@ -1,13 +1,12 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.DescuentoVisitasEntity;
-import com.example.demo.Services.DescuentoVisitasService;
+import com.example.demo.entities.DescuentoVisitasEntity;
+import com.example.demo.entities.ReservaEntity;
+import com.example.demo.services.DescuentoVisitasService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -51,13 +50,8 @@ public class DescuentoVisitasController {
         }
     }
 
-
-    @GetMapping("/calcular/{rut}/{fechaReserva}")
-    public ResponseEntity<Integer> calcularDescuentoVisitas(
-            @PathVariable String rut,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaReserva) {
-        int descuento = descuentoVisitasService.buscarDescuentoVisitas(rut, fechaReserva);
-        return ResponseEntity.ok(descuento);
+    @PostMapping("/calcular")
+    public int calcularDescuentoDesdeReservas(@RequestParam String rut, @RequestBody List<ReservaEntity> reservas) {
+        return descuentoVisitasService.calcularDescuentoVisitas(rut, reservas);
     }
-
 }

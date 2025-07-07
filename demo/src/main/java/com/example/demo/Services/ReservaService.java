@@ -1,17 +1,15 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.ReservaEntity;
-import com.example.demo.Entities.UsuarioEntity;
-import com.example.demo.Repositories.ReservaRepository;
+import com.example.demo.entities.ReservaEntity;
+import com.example.demo.entities.UsuarioEntity;
+import com.example.demo.repositories.ReservaRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lowagie.text.pdf.PdfWriter;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -30,7 +28,6 @@ import java.util.stream.Stream;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 import com.lowagie.text.Document;
-import org.springframework.web.client.RestTemplate;
 
 
 @Service
@@ -104,14 +101,12 @@ public class ReservaService {
         return response.getBody();*/
     }
 
-    public List<Object> obtenerDescuentoGrupo(int cantPersonas) {
+    public Object[] obtenerDescuentoGrupo(int cantPersonas) {
         Object desc =  descuentoGrupoService.buscarDescuentoGrupo(cantPersonas);
         if (desc == null) {
-            return Collections.emptyList();
+            return new Object[0];
         }
-        List<Object> descuentoGrupo = new ArrayList<>();
-        descuentoGrupo.add(desc);
-        return descuentoGrupo;
+        return (Object[]) desc;
         /*
         ResponseEntity<List<Object>> desc = restTemplate.exchange(
                 "http://descuentoGrupo-service/descuentoGrupo/calcular/" + cantPersonas,
@@ -123,27 +118,17 @@ public class ReservaService {
 
 
     public Map<UsuarioEntity, Integer> obtenerDescuentoFrecuencia(List<UsuarioEntity> usuarios, LocalDateTime fechaReserva) {
+        LocalDateTime inicioMes = fechaReserva.withDayOfMonth(1).toLocalDate().atStartOfDay();
+        List<ReservaEntity> reservasMes = getReservasEntreFechas(inicioMes, fechaReserva);
+
         Map<UsuarioEntity, Integer> descuentos = new HashMap<>();
-
         for (UsuarioEntity usuario : usuarios) {
-            Integer desc = descuentoVisitasService.buscarDescuentoVisitas(usuario.getRut(), fechaReserva);
-            descuentos.put(usuario, desc);
+            int descuento = descuentoVisitasService.calcularDescuentoVisitas(usuario.getRut(), reservasMes);
+            descuentos.put(usuario, descuento);
         }
-
         return descuentos;
-
-        /*Map<UsuarioEntity, Integer> descuentos = new java.util.HashMap<>();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        String fechaFormateada = fechaReserva.format(formatter);
-
-        for (UsuarioEntity usuario : usuarios) {
-             Integer desc = restTemplate.getForObject("http://descuentoVisitas-service/descuentoVisitas/calcular/" + usuario.getRut() + "/" + fechaFormateada, Integer.class);
-
-             descuentos.put(usuario, desc);
-        }
-        return descuentos;*/
     }
+
 
     public Set<UsuarioEntity> obtenerCumpleaneros(List<UsuarioEntity> usuarios, LocalDate fechaReserva) {
         Set<UsuarioEntity> cumpleaneros = tarifaEspecialService.obtenerCumpleaneros(usuarios, fechaReserva);
@@ -376,7 +361,7 @@ public class ReservaService {
            LocalDateTime start = r.getFechaReserva();
             LocalDateTime end = start.plusMinutes(r.getDuracion());
             if (newStart.isBefore(end) && start.isBefore(newEnd)) {
-                throw new IllegalArgumentException("Ya existe una reserva que se solapa en ese horario.");
+                throw new IllegalArgumentException("Ya existe una reserva en este horario.");
             }
         }
 
@@ -385,10 +370,12 @@ public class ReservaService {
         // Aplicar tarifa especial si corresponde
         precioBase = aplicarTarifaEspecial(LocalDate.from(reservation.getFechaReserva()), precioBase);
 
-        List<Object> descGrupo = obtenerDescuentoGrupo(reservation.getCantPersonas());
+        Object[] descGrupo = obtenerDescuentoGrupo(reservation.getCantPersonas());
 
-        int groupDiscount = (int) descGrupo.get(0);
-        String rangoPersonas = descGrupo.get(1) + "-" + descGrupo.get(2) + " personas";
+        int groupDiscount = ((Number) descGrupo[0]).intValue();
+        String rangoPersonas = descGrupo[1].toString() + "-" + descGrupo[2].toString() + " personas";
+
+
 
 
         Map<UsuarioEntity, Integer> visitDiscounts = obtenerDescuentoFrecuencia(usuarios, reservation.getFechaReserva());

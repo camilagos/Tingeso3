@@ -1,17 +1,11 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.DescuentoVisitasEntity;
-import com.example.demo.Entities.ReservaEntity;
-import com.example.demo.Repositories.DescuentoVisitasRepository;
+import com.example.demo.entities.DescuentoVisitasEntity;
+import com.example.demo.entities.ReservaEntity;
+import com.example.demo.repositories.DescuentoVisitasRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,9 +14,6 @@ public class DescuentoVisitasService {
 
     @Autowired
     DescuentoVisitasRepository descuentoVisitasRepository;
-
-    @Autowired
-    ReservaService reservaService;
 
     public DescuentoVisitasEntity saveDescuentoVisitas(DescuentoVisitasEntity descuentoVisitas) {
         return descuentoVisitasRepository.save(descuentoVisitas);
@@ -54,61 +45,20 @@ public class DescuentoVisitasService {
     }
 
 
-    public int buscarDescuentoVisitas(String rut, LocalDateTime fechaReserva) {
-        LocalDateTime inicio = fechaReserva.withDayOfMonth(1).toLocalDate().atStartOfDay();
-
-        List<ReservaEntity> reservas = reservaService.getReservasEntreFechas(inicio, fechaReserva);
-        /*
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
-        String inicio = fechaReserva.withDayOfMonth(1).toLocalDate().atStartOfDay().format(formatter);
-        String fin = fechaReserva.format(formatter);
-
-        String url = "http://reserva-service/reserva/entreFechas/" + inicio + "/" + fin;
-
-        List<ReservaEntity> reservas;
-        try {
-            reservas = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<ReservaEntity>>() {}).getBody();
-        } catch (Exception e) {
-            System.err.println("Error al consultar reservas: " + e.getMessage());
-            return 0; // Sin reservas, sin descuento
-        }*/
-
-        if (reservas == null || reservas.isEmpty()) {
-            System.out.println("No se encontraron reservas para el rango: " + inicio + " a " + fechaReserva);
-            return 0;
-        }
-
+    public int calcularDescuentoVisitas(String rut, List<ReservaEntity> reservas) {
         int contador = 0;
-
         for (ReservaEntity reserva : reservas) {
-            boolean isMainCustomer = rut.equals(reserva.getRutUsuario());
-
-            boolean isInParticipants = false;
-            if (reserva.getRutsUsuarios() != null && !reserva.getRutsUsuarios().isBlank()) {
-                isInParticipants = Arrays.stream(reserva.getRutsUsuarios().split(","))
-                        .map(String::trim)
-                        .anyMatch(rut::equals);
-            }
-
-            if (isMainCustomer || isInParticipants) {
+            if (rut.equals(reserva.getRutUsuario())) contador++;
+            else if (reserva.getRutsUsuarios() != null &&
+                    Arrays.stream(reserva.getRutsUsuarios().split(","))
+                            .map(String::trim).anyMatch(rut::equals)) {
                 contador++;
             }
         }
 
         DescuentoVisitasEntity desc = descuentoVisitasRepository
                 .findByMinVisitasLessThanEqualAndMaxVisitasGreaterThanEqual(contador, contador);
-
-        if (desc == null) {
-            System.out.println("No se encontró descuento para " + contador + " visitas.");
-            return 0;
-        }
-
-        return desc.getDescuento();
+        return desc != null ? desc.getDescuento() : 0;
     }
 
 

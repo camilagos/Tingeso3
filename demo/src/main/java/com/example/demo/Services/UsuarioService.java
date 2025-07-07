@@ -1,7 +1,7 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.UsuarioEntity;
-import com.example.demo.Repositories.UsuarioRepository;
+import com.example.demo.repositories.UsuarioRepository;
+import com.example.demo.entities.UsuarioEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,10 +18,11 @@ public class UsuarioService {
     public UsuarioEntity saveUsuario(UsuarioEntity usuario) {
         UsuarioEntity usuarioRut = usuarioRepository.findByRut(usuario.getRut());
         if (usuarioRut != null) {
-            return null;
+            throw new IllegalArgumentException("Ya existe un usuario con ese RUT");
         }
         return usuarioRepository.save(usuario);
     }
+
 
     public UsuarioEntity getUsuarioById(Long id) {
         return usuarioRepository.findById(id).orElse(null);

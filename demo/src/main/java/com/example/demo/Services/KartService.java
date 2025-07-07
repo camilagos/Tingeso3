@@ -1,7 +1,7 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.KartEntity;
-import com.example.demo.Repositories.KartRepository;
+import com.example.demo.entities.KartEntity;
+import com.example.demo.repositories.KartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

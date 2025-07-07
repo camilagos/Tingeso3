@@ -1,7 +1,7 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.TarifaEntity;
-import com.example.demo.Services.TarifaService;
+import com.example.demo.services.TarifaService;
+import com.example.demo.entities.TarifaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

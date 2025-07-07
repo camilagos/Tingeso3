@@ -1,13 +1,12 @@
-package com.example.demo.Entities;
+package com.example.demo.entities;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 @Entity
 @Data
@@ -21,4 +20,36 @@ public class DescuentoGrupoEntity {
     private int minPersonas;
     private int maxPersonas;
     private int descuento;
+
+    public int getId() {
+        return id;
+    }
+
+    public int getMinPersonas() {
+        return minPersonas;
+    }
+
+    public int getMaxPersonas() {
+        return maxPersonas;
+    }
+
+    public int getDescuento() {
+        return descuento;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setMinPersonas(int minPersonas) {
+        this.minPersonas = minPersonas;
+    }
+
+    public void setMaxPersonas(int maxPersonas) {
+        this.maxPersonas = maxPersonas;
+    }
+
+    public void setDescuento(int descuento) {
+        this.descuento = descuento;
+    }
 }

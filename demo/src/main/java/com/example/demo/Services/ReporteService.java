@@ -1,24 +1,18 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.ReporteEntity;
-import com.example.demo.Entities.ReservaEntity;
-import com.example.demo.Repositories.ReporteRepository;
+import com.example.demo.entities.ReporteEntity;
+import com.example.demo.entities.ReservaEntity;
+import com.example.demo.repositories.ReporteRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class ReporteService {
@@ -57,14 +51,14 @@ public class ReporteService {
         return response.getBody();*/
     }
 
-
     public Map<String, Map<String, Double>> incomeFromLapsOrTime(LocalDate fechaInicio, LocalDate fechaFin) {
         List<ReservaEntity> reservations = obtenerReservasEntreFechas(fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59));
 
         Map<String, Map<String, Double>> intermediate = new TreeMap<>();
         for (ReservaEntity r : reservations) {
-            String monthReservation = r.getFechaReserva().getYear() + "-" + String.format("%02d", r.getFechaReserva().getMonthValue());
-            String lapsOrTimeReservation = r.getVueltasTiempo() + " vueltas o máx. " + r.getVueltasTiempo() + " minutos";
+            String monthKey = r.getFechaReserva().getYear() + "-" + String.format("%02d", r.getFechaReserva().getMonthValue());
+            String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
+            String category = r.getVueltasTiempo() + " vueltas o máx. " + r.getVueltasTiempo() + " minutos";
 
             double totalReservation = 0;
             try {
@@ -81,55 +75,54 @@ public class ReporteService {
                 continue;
             }
 
-            intermediate.computeIfAbsent(lapsOrTimeReservation, k -> new TreeMap<>());
-            intermediate.get(lapsOrTimeReservation).put(monthReservation,
-                    intermediate.get(lapsOrTimeReservation).getOrDefault(monthReservation, 0.0) + totalReservation);
+            intermediate.computeIfAbsent(category, k -> new TreeMap<>());
+            intermediate.get(category).put(displayMonth,
+                    intermediate.get(category).getOrDefault(displayMonth, 0.0) + totalReservation);
         }
 
-        Set<String> allMonths = new TreeSet<>();
+        Set<String> allMonthKeys = new TreeSet<>();
         LocalDate current = fechaInicio.withDayOfMonth(1);
         while (!current.isAfter(fechaFin.withDayOfMonth(1))) {
-            allMonths.add(current.getYear() + "-" + String.format("%02d", current.getMonthValue()));
+            String key = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
+            allMonthKeys.add(key);
             current = current.plusMonths(1);
         }
 
-        // Categorías requeridas por el enunciado
         Set<String> predefinedLapsCategories = Set.of(
                 "10 vueltas o máx. 10 minutos",
                 "15 vueltas o máx. 15 minutos",
                 "20 vueltas o máx. 20 minutos"
         );
-
-        // Combinar categorías predefinidas con las encontradas en las reservas
-        Set<String> allLapsCategories = new TreeSet<>(predefinedLapsCategories);
-        allLapsCategories.addAll(intermediate.keySet());
+        Set<String> allCategories = new TreeSet<>(predefinedLapsCategories);
+        allCategories.addAll(intermediate.keySet());
 
         Map<String, Map<String, Double>> result = new LinkedHashMap<>();
         Map<String, Double> totalPerMonth = new TreeMap<>();
 
-        for (String row : allLapsCategories) {
+        for (String row : allCategories) {
             Map<String, Double> rowData = new LinkedHashMap<>();
             double totalRow = 0;
-            for (String month : allMonths) {
-                double value = intermediate.getOrDefault(row, Collections.emptyMap()).getOrDefault(month, 0.0);
+            for (String monthKey : allMonthKeys) {
+                String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
+                double value = intermediate.getOrDefault(row, Collections.emptyMap()).getOrDefault(displayMonth, 0.0);
                 double roundedValue = Math.round(value);
-                rowData.put(getMonth(month), roundedValue);
-                totalPerMonth.put(getMonth(month), totalPerMonth.getOrDefault(getMonth(month), 0.0) + roundedValue);
+                rowData.put(displayMonth, roundedValue);
+                totalPerMonth.put(displayMonth, totalPerMonth.getOrDefault(displayMonth, 0.0) + roundedValue);
                 totalRow += roundedValue;
             }
-            rowData.put("Total", (double) Math.round(totalRow));
+            rowData.put("Total", Double.valueOf(Math.round(totalRow)));
             result.put(row, rowData);
         }
 
         Map<String, Double> totalRows = new LinkedHashMap<>();
         double total = 0;
-        for (String nameMonth : allMonths.stream().map(this::getMonth).collect(Collectors.toList())) {
-            double valorMes = totalPerMonth.getOrDefault(nameMonth, 0.0);
-            double roundedValorMes = Math.round(valorMes);
-            totalRows.put(nameMonth, roundedValorMes);
-            total += roundedValorMes;
+        for (String monthKey : allMonthKeys) {
+            String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
+            double monthTotal = totalPerMonth.getOrDefault(displayMonth, 0.0);
+            totalRows.put(displayMonth, monthTotal);
+            total += monthTotal;
         }
-        totalRows.put("Total", (double) Math.round(total));
+        totalRows.put("Total", Double.valueOf(Math.round(total)));
         result.put("TOTAL", totalRows);
 
         try {
@@ -153,12 +146,10 @@ public class ReporteService {
 
         Map<String, Map<String, Double>> intermediate = new TreeMap<>();
         for (ReservaEntity r : reservations) {
-            String monthReservation = r.getFechaReserva().getYear() + "-" + String.format("%02d", r.getFechaReserva().getMonthValue());
-
+            String monthKey = r.getFechaReserva().getYear() + "-" + String.format("%02d", r.getFechaReserva().getMonthValue());
+            String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
             String range = r.getRangoPersonas();
-            if (range == null || range.isBlank()) {
-                range = "Sin rango definido";
-            }
+            if (range == null || range.isBlank()) range = "Sin rango definido";
 
             double totalReservation = 0;
             try {
@@ -176,29 +167,25 @@ public class ReporteService {
             }
 
             intermediate.computeIfAbsent(range, k -> new TreeMap<>());
-            intermediate.get(range).put(monthReservation,
-                    intermediate.get(range).getOrDefault(monthReservation, 0.0) + totalReservation);
+            intermediate.get(range).put(displayMonth,
+                    intermediate.get(range).getOrDefault(displayMonth, 0.0) + totalReservation);
         }
 
-        Set<String> allMonths = new TreeSet<>();
+        Set<String> allMonthKeys = new TreeSet<>();
         LocalDate current = fechaInicio.withDayOfMonth(1);
         while (!current.isAfter(fechaFin.withDayOfMonth(1))) {
-            allMonths.add(current.getYear() + "-" + String.format("%02d", current.getMonthValue()));
+            String key = current.getYear() + "-" + String.format("%02d", current.getMonthValue());
+            allMonthKeys.add(key);
             current = current.plusMonths(1);
         }
 
-        // Lista ordenada de categorías predefinidas (según enunciado)
         List<String> orderedPredefinedRanges = Arrays.asList(
                 "1-2 personas",
                 "3-5 personas",
                 "6-10 personas",
                 "11-15 personas"
         );
-
-        // Rango encontrados en reservas
         Set<String> detectedRanges = new TreeSet<>(intermediate.keySet());
-
-        // Crear lista final manteniendo orden predefinido, y agregando extras al final
         List<String> allGroupCategories = new ArrayList<>(orderedPredefinedRanges);
         for (String extra : detectedRanges) {
             if (!orderedPredefinedRanges.contains(extra)) {
@@ -212,26 +199,27 @@ public class ReporteService {
         for (String row : allGroupCategories) {
             Map<String, Double> rowData = new LinkedHashMap<>();
             double totalRow = 0;
-            for (String month : allMonths) {
-                double value = intermediate.getOrDefault(row, Collections.emptyMap()).getOrDefault(month, 0.0);
+            for (String monthKey : allMonthKeys) {
+                String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
+                double value = intermediate.getOrDefault(row, Collections.emptyMap()).getOrDefault(displayMonth, 0.0);
                 double roundedValue = Math.round(value);
-                rowData.put(getMonth(month), roundedValue);
-                totalPerMonth.put(getMonth(month), totalPerMonth.getOrDefault(getMonth(month), 0.0) + roundedValue);
+                rowData.put(displayMonth, roundedValue);
+                totalPerMonth.put(displayMonth, totalPerMonth.getOrDefault(displayMonth, 0.0) + roundedValue);
                 totalRow += roundedValue;
             }
-            rowData.put("Total", (double) Math.round(totalRow));
+            rowData.put("Total", Double.valueOf(Math.round(totalRow)));
             result.put(row, rowData);
         }
 
         Map<String, Double> totalRows = new LinkedHashMap<>();
         double total = 0;
-        for (String nameMonth : allMonths.stream().map(this::getMonth).collect(Collectors.toList())) {
-            double monthValue = totalPerMonth.getOrDefault(nameMonth, 0.0);
-            double roundedMonthValue = Math.round(monthValue);
-            totalRows.put(nameMonth, roundedMonthValue);
-            total += roundedMonthValue;
+        for (String monthKey : allMonthKeys) {
+            String displayMonth = getMonth(monthKey) + " " + monthKey.substring(0, 4);
+            double monthValue = totalPerMonth.getOrDefault(displayMonth, 0.0);
+            totalRows.put(displayMonth, Double.valueOf(Math.round(monthValue)));
+            total += monthValue;
         }
-        totalRows.put("Total", (double) Math.round(total));
+        totalRows.put("Total", Double.valueOf(Math.round(total)));
         result.put("TOTAL", totalRows);
 
         try {
@@ -248,7 +236,4 @@ public class ReporteService {
 
         return result;
     }
-
-
-
 }

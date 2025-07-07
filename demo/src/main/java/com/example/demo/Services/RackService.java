@@ -1,15 +1,10 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import org.apache.poi.sl.draw.geom.GuideIf;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import com.example.demo.Entities.ReservaEntity;
-import com.example.demo.Entities.UsuarioEntity;
+import com.example.demo.entities.ReservaEntity;
+import com.example.demo.entities.UsuarioEntity;
 
 import java.time.LocalDateTime;
 import java.util.*;

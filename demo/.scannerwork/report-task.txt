@@ -1,0 +1,6 @@
+projectKey=karting-backend
+serverUrl=http://localhost:9000
+serverVersion=25.6.0.109173
+dashboardUrl=http://localhost:9000/dashboard?id=karting-backend
+ceTaskId=196c4b9d-f195-4322-b356-5efd577787ca
+ceTaskUrl=http://localhost:9000/api/ce/task?id=196c4b9d-f195-4322-b356-5efd577787ca

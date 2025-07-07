@@ -1,7 +1,7 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.DescuentoGrupoEntity;
-import com.example.demo.Services.DescuentoGrupoService;
+import com.example.demo.services.DescuentoGrupoService;
+import com.example.demo.entities.DescuentoGrupoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +13,11 @@ import java.util.List;
 @CrossOrigin("*")
 public class DescuentoGrupoController {
 
-    @Autowired
-    DescuentoGrupoService descuentoGrupoService;
+    private final DescuentoGrupoService descuentoGrupoService;
+
+    public DescuentoGrupoController(DescuentoGrupoService descuentoGrupoService) {
+        this.descuentoGrupoService = descuentoGrupoService;
+    }
 
     @PostMapping()
     public ResponseEntity<DescuentoGrupoEntity> save(@RequestBody DescuentoGrupoEntity descuentoGrupo) {

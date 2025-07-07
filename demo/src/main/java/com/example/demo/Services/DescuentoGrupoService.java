@@ -1,7 +1,7 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.DescuentoGrupoEntity;
-import com.example.demo.Repositories.DescuentoGrupoRepository;
+import com.example.demo.entities.DescuentoGrupoEntity;
+import com.example.demo.repositories.DescuentoGrupoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

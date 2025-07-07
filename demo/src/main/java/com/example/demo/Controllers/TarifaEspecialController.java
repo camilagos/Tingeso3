@@ -1,8 +1,8 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.TarifaEspecialEntity;
-import com.example.demo.Entities.UsuarioEntity;
-import com.example.demo.Services.TarifaEspecialService;
+import com.example.demo.entities.TarifaEspecialEntity;
+import com.example.demo.services.TarifaEspecialService;
+import com.example.demo.entities.UsuarioEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,8 @@
-package com.example.demo.Services;
+package com.example.demo.services;
 
-import com.example.demo.Entities.TarifaEspecialEntity;
-import com.example.demo.Entities.UsuarioEntity;
-import com.example.demo.Repositories.TarifaEspecialRepository;
+import com.example.demo.entities.TarifaEspecialEntity;
+import com.example.demo.entities.UsuarioEntity;
+import com.example.demo.repositories.TarifaEspecialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
-package com.example.demo.Controllers;
+package com.example.demo.controllers;
 
-import com.example.demo.Entities.KartEntity;
-import com.example.demo.Services.KartService;
+import com.example.demo.entities.KartEntity;
+import com.example.demo.services.KartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
